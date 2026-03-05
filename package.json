@@ -1,6 +1,6 @@
 {
   "name": "@open-ai-school/ai-ui-library",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Shared UI component library for Open AI School — React, TypeScript, Tailwind CSS, Framer Motion",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
