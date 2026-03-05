@@ -21,12 +21,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          registry-url: https://registry.npmjs.org
       - run: npm ci --legacy-peer-deps
       - run: npm run build
-      - name: Publish with OIDC
-        run: |
-          # Remove auth token placeholder injected by setup-node
-          # This forces npm to use OIDC instead of empty token auth
-          sed -i '/_authToken/d' "$HOME/.npmrc"
-          npm publish --provenance --access public
+      - name: Publish with OIDC Trusted Publishing
+        run: npm publish --provenance --access public
