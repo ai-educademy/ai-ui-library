@@ -23,15 +23,5 @@ jobs:
           cache: npm
       - run: npm ci --legacy-peer-deps
       - run: npm run build
-      - name: Debug auth config
-        run: |
-          echo "=== npm config ==="
-          npm config list
-          echo "=== .npmrc files ==="
-          cat ~/.npmrc 2>/dev/null || echo "No ~/.npmrc"
-          cat .npmrc 2>/dev/null || echo "No ./.npmrc"
-          echo "=== ACTIONS_ID_TOKEN_REQUEST_URL ==="
-          echo "${ACTIONS_ID_TOKEN_REQUEST_URL:+SET}"
-          echo "${ACTIONS_ID_TOKEN_REQUEST_URL:-(NOT SET)}"
       - name: Publish with OIDC Trusted Publishing
-        run: npm publish --provenance --access public --loglevel verbose
+        run: npm publish --provenance --access public
