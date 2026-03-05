@@ -2,16 +2,16 @@
 
 # 🎨 AI UI Library
 
-**The shared design system for [Open AI School](https://open-ai-school.vercel.app)**
+**The shared design system for [Open AI School](https://openaischool.vercel.app)**
 
 [![npm version](https://img.shields.io/npm/v/@open-ai-school/ai-ui-library?color=6366f1&label=npm)](https://www.npmjs.com/package/@open-ai-school/ai-ui-library)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Storybook](https://img.shields.io/badge/Storybook-FF4785?logo=storybook&logoColor=white)](https://ui.open-ai-school.vercel.app)
+[![Storybook](https://img.shields.io/badge/Storybook-FF4785?logo=storybook&logoColor=white)](https://ui.openaischool.vercel.app)
 
 A production-ready React component library built with TypeScript, Tailwind CSS, and Framer Motion. Designed as the single source of truth for UI across all Open AI School programs.
 
-[**Live Storybook →**](https://ui.open-ai-school.vercel.app) · [**npm →**](https://www.npmjs.com/package/@open-ai-school/ai-ui-library) · [**Open AI School →**](https://open-ai-school.vercel.app)
+[**Live Storybook →**](https://ui.openaischool.vercel.app) · [**npm →**](https://www.npmjs.com/package/@open-ai-school/ai-ui-library) · [**Open AI School →**](https://openaischool.vercel.app)
 
 </div>
 
