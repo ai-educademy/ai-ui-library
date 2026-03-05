@@ -65,7 +65,8 @@
     "react-dom": "^19.2.4",
     "storybook": "^8.6.14",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   },
   "dependencies": {
     "framer-motion": "^12.15.0",
