@@ -1,0 +1,222 @@
+name: Fleet Manager
+
+# WHY THIS IS PLAIN YAML AND NEVER AN AGENT
+# ----------------------------------------------------------------------------
+# The authority to merge code into `main` is the single most dangerous
+# permission in this repo, because a merge ships straight towards a published
+# npm package that real consumers install. That authority is deliberately held
+# by dumb, deterministic YAML that you can read top to bottom, not by a language
+# model that can be argued with, prompt-injected, or have a bad day.
+#
+# The gh-aw agentic workflows in this repo can PROPOSE changes (they open PRs),
+# but by design they structurally cannot merge: gh-aw has no merge safe-output.
+# This file is the only thing that merges, and it only ever merges on the basis
+# of facts it can check itself: who opened the PR, what files it touches, and
+# whether every required check is genuinely, verifiably green. It cannot be
+# talked into anything. If any check is in doubt, it does nothing. That is the
+# whole point: the guard on the front door is not clever, it is predictable.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+  check_suite:
+    types: [completed]
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+# One fleet manager at a time. We never want two runs racing to merge the same
+# PR or blowing the per-run cap between them.
+concurrency:
+  group: fleet-manager
+  cancel-in-progress: false
+
+permissions:
+  contents: write        # to merge
+  pull-requests: write   # to label and comment
+  checks: read
+  statuses: read
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate and merge eligible fleet PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          # The set of accounts whose PRs may be auto-merged. Never a human.
+          ALLOWED_AUTHORS: "github-actions[bot] app/github-actions dependabot[bot] app/dependabot"
+          MAX_MERGES: "5"
+        run: |
+          set -euo pipefail
+
+          # --- Kill switch ---------------------------------------------------
+          # If the repo variable FLEET_AUTOMERGE is set to "off", stand down and
+          # merge nothing at all. This is the big red button.
+          KILL="$(gh api "repos/$REPO/actions/variables/FLEET_AUTOMERGE" --jq '.value' 2>/dev/null || echo "")"
+          if [ "$KILL" = "off" ]; then
+            echo "FLEET_AUTOMERGE=off: standing down, merging nothing."
+            exit 0
+          fi
+
+          # --- Discover the required check names -----------------------------
+          # Prefer the repo's own branch protection as the source of truth. If
+          # there is no protection configured, fall back to the job names in
+          # ci.yml, because those are the checks that actually gate this repo.
+          # We never guess a check name.
+          REQUIRED="$(gh api "repos/$REPO/branches/main/protection/required_status_checks/contexts" --jq '.[]' 2>/dev/null || true)"
+          if [ -z "${REQUIRED// }" ]; then
+            echo "No branch protection required checks. Falling back to ci.yml job names."
+            if [ -f .github/workflows/ci.yml ]; then
+              # Extract the top-level keys under `jobs:` (2-space indented).
+              REQUIRED="$(awk '
+                /^jobs:[[:space:]]*$/ {injobs=1; next}
+                injobs==1 && /^[^[:space:]]/ {injobs=0}
+                injobs==1 && /^  [A-Za-z0-9_-]+:[[:space:]]*$/ {
+                  line=$0; sub(/:.*/,"",line); gsub(/[[:space:]]/,"",line); print line
+                }
+              ' .github/workflows/ci.yml)"
+            fi
+          fi
+          if [ -z "${REQUIRED// }" ]; then
+            echo "Could not determine any required check names. Refusing to merge anything this run."
+            exit 0
+          fi
+          echo "Required checks:"; echo "$REQUIRED" | sed 's/^/  - /'
+
+          # --- Gather candidate PRs ------------------------------------------
+          OPEN_PRS="$(gh pr list --repo "$REPO" --state open --limit 50 --json number --jq '.[].number')"
+          if [ -z "${OPEN_PRS// }" ]; then
+            echo "No open PRs."; exit 0
+          fi
+
+          merged=0
+          for num in $OPEN_PRS; do
+            if [ "$merged" -ge "$MAX_MERGES" ]; then
+              echo "Reached MAX_MERGES=$MAX_MERGES. Stopping so a haywire fleet does bounded damage."
+              break
+            fi
+
+            echo "==== Evaluating PR #$num ===="
+            DATA="$(gh pr view "$num" --repo "$REPO" --json number,author,isDraft,mergeable,reviewDecision,labels,headRefName,files,statusCheckRollup)"
+
+            AUTHOR="$(echo "$DATA" | jq -r '.author.login')"
+            IS_DRAFT="$(echo "$DATA" | jq -r '.isDraft')"
+            MERGEABLE="$(echo "$DATA" | jq -r '.mergeable')"
+            REVIEW="$(echo "$DATA" | jq -r '.reviewDecision // ""')"
+            LABELS="$(echo "$DATA" | jq -r '.labels[].name' | tr '\n' ' ')"
+            FILES="$(echo "$DATA" | jq -r '.files[].path')"
+
+            # --- Author allowlist: never a human -----------------------------
+            allowed=0
+            for a in $ALLOWED_AUTHORS; do
+              if [ "$a" = "$AUTHOR" ]; then allowed=1; break; fi
+            done
+            if [ "$allowed" -ne 1 ]; then
+              echo "  author '$AUTHOR' is not in the bot/agent allowlist. Skipping (human PRs are never auto-merged)."
+              continue
+            fi
+
+            # --- Draft / label / review / mergeable gates --------------------
+            if [ "$IS_DRAFT" = "true" ]; then
+              echo "  draft PR. Skipping."; continue
+            fi
+            block_label=0
+            for l in $LABELS; do
+              case "$l" in
+                do-not-merge|wip|needs-human) block_label=1 ;;
+              esac
+            done
+            if [ "$block_label" -eq 1 ]; then
+              echo "  carries a blocking label ($LABELS). Skipping."; continue
+            fi
+            if [ "$REVIEW" = "CHANGES_REQUESTED" ]; then
+              echo "  reviewDecision is CHANGES_REQUESTED. Skipping."; continue
+            fi
+            if [ "$MERGEABLE" != "MERGEABLE" ]; then
+              echo "  mergeable state is '$MERGEABLE' (need MERGEABLE). Skipping."; continue
+            fi
+
+            # --- Guardrail: never let an agent widen its own powers ----------
+            # A PR that edits any workflow could disable these very guardrails
+            # or grant the fleet new permissions. That decision belongs to a
+            # human, always.
+            if echo "$FILES" | grep -Eq '^\.github/workflows/'; then
+              echo "  touches .github/workflows/. Labelling needs-human and skipping."
+              gh pr edit "$num" --repo "$REPO" --add-label "needs-human" >/dev/null 2>&1 || true
+              continue
+            fi
+
+            # --- Guardrail: never auto-ship to npm consumers -----------------
+            # Publishing/release config changes go out to every consumer of the
+            # package, so they must be a deliberate human release decision.
+            if echo "$FILES" | grep -Eq '(^|/)(publish\.yml|\.npmrc|npmrc)$'; then
+              echo "  touches publishing/release config. Labelling needs-human and skipping."
+              gh pr edit "$num" --repo "$REPO" --add-label "needs-human" >/dev/null 2>&1 || true
+              continue
+            fi
+            if echo "$FILES" | grep -Eq '(^|/)package\.json$'; then
+              # A package.json change is only dangerous if it changes the
+              # published version. Adding a script or dev-dependency is fine.
+              if gh pr diff "$num" --repo "$REPO" 2>/dev/null \
+                   | awk '/^diff --git/{f=$0} /package\.json/{inpkg=1} /^diff --git/ && $0 !~ /package\.json/{inpkg=0} inpkg==1 && /^[+-][[:space:]]*"version":/{found=1} END{exit !found}'; then
+                echo "  changes the published version in package.json. Labelling needs-human and skipping."
+                gh pr edit "$num" --repo "$REPO" --add-label "needs-human" >/dev/null 2>&1 || true
+                continue
+              fi
+            fi
+
+            # --- Checks must be genuinely green ------------------------------
+            # Normalise every check into name + one of: success | pending |
+            # failed. Zero failed, zero pending, and every required check
+            # present and SUCCESS by name. Anything unexpected counts against.
+            ROLLUP="$(echo "$DATA" | jq -c '[.statusCheckRollup[]? | {
+              name: (.name // .context // ""),
+              result: (
+                if .__typename == "CheckRun" then
+                  (if .status != "COMPLETED" then "pending"
+                   elif .conclusion == "SUCCESS" or .conclusion == "SKIPPED" or .conclusion == "NEUTRAL" then "success"
+                   else "failed" end)
+                else
+                  (if .state == "SUCCESS" then "success"
+                   elif .state == "PENDING" or .state == "EXPECTED" then "pending"
+                   else "failed" end)
+                end)
+            }]')"
+
+            FAILED_COUNT="$(echo "$ROLLUP" | jq '[.[] | select(.result=="failed")] | length')"
+            PENDING_COUNT="$(echo "$ROLLUP" | jq '[.[] | select(.result=="pending")] | length')"
+
+            if [ "$FAILED_COUNT" -ne 0 ]; then
+              echo "  $FAILED_COUNT failing check(s). Skipping."; continue
+            fi
+            if [ "$PENDING_COUNT" -ne 0 ]; then
+              echo "  $PENDING_COUNT pending check(s). Skipping."; continue
+            fi
+
+            # Every required check must be present AND success by name.
+            missing=0
+            while IFS= read -r req; do
+              [ -z "${req// }" ] && continue
+              ok="$(echo "$ROLLUP" | jq -r --arg n "$req" '[.[] | select(.name==$n and .result=="success")] | length')"
+              if [ "$ok" -lt 1 ]; then
+                echo "  required check '$req' is not present-and-successful. Skipping."
+                missing=1; break
+              fi
+            done <<< "$REQUIRED"
+            if [ "$missing" -ne 0 ]; then
+              continue
+            fi
+
+            # --- All gates passed: merge -------------------------------------
+            echo "  all gates green. Merging PR #$num (squash)."
+            if gh pr merge "$num" --repo "$REPO" --squash --delete-branch --auto=false 2>&1; then
+              gh pr comment "$num" --repo "$REPO" --body "Auto-merged by Fleet Manager: author on the bot allowlist, no guarded paths touched, and every required check is green. Merge authority here is deliberately plain deterministic YAML, never a model." >/dev/null 2>&1 || true
+              merged=$((merged+1))
+            else
+              echo "  merge command failed. Leaving PR for a human."
+            fi
+          done
+
+          echo "Done. Merged $merged PR(s) this run."
