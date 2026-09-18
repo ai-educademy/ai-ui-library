@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, type KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 
 export interface CardProps {
@@ -29,6 +29,15 @@ export function Card({
   className = "",
   onClick,
 }: CardProps) {
+  const handleKeyDown = onClick
+    ? (e: KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }
+    : undefined;
+
   return (
     <motion.div
       whileHover={hover ? { y: -4, scale: 1.01 } : undefined}
@@ -37,6 +46,9 @@ export function Card({
         hover ? "cursor-pointer" : ""
       } ${className}`}
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={handleKeyDown}
     >
       {children}
     </motion.div>

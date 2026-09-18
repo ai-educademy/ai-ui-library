@@ -119,6 +119,7 @@ export function Navigation({
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden"
               onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
             />
             <motion.div
               initial={{ opacity: 0, height: 0 }}
