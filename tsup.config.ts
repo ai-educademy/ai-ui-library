@@ -1,5 +1,5 @@
 import { defineConfig } from "tsup";
-import { writeFileSync, readFileSync } from "fs";
+import { writeFileSync, readFileSync, copyFileSync } from "fs";
 
 export default defineConfig({
   entry: ["src/index.ts"],
@@ -17,5 +17,11 @@ export default defineConfig({
       const content = readFileSync(file, "utf-8");
       writeFileSync(file, `"use client";\n${content}`);
     }
+
+    // Ship the design tokens as the published stylesheet. The package.json
+    // exports map and the README both promise ./styles.css, but nothing ever
+    // emitted it, so consumers following the documented import hit a missing
+    // file and rendered every component with no theme variables at all.
+    copyFileSync("src/theme/tokens.css", "dist/styles.css");
   },
 });

@@ -8,12 +8,16 @@ const ALL_SLUGS = ["what-is-ai", "how-machines-learn", "your-first-ai-model"];
 
 export function WelcomeBanner({ basePath }: { basePath: string }) {
   const { profile, isSignedIn } = useGuestProfile();
-  const { completed, completedCount } = useProgress();
+  const { completed } = useProgress();
 
   if (!isSignedIn) return null;
 
   const nextSlug = ALL_SLUGS.find((s) => !completed.includes(s)) || ALL_SLUGS[0];
-  const percentage = Math.round((completedCount / ALL_SLUGS.length) * 100);
+  // Count only the lessons this banner tracks. useProgress() with no programme
+  // flattens completions across every programme, so dividing its raw count by
+  // ALL_SLUGS.length produced "5 of 3 lessons" and a bar wider than 100%.
+  const bannerCompleted = ALL_SLUGS.filter((s) => completed.includes(s)).length;
+  const percentage = Math.round((bannerCompleted / ALL_SLUGS.length) * 100);
 
   return (
     <div className="max-w-2xl mx-auto mt-10 animate-fade-up" style={{ animationDelay: "600ms" }}>
@@ -25,9 +29,9 @@ export function WelcomeBanner({ basePath }: { basePath: string }) {
               Welcome back, {profile?.name}! 👋
             </p>
             <p className="text-sm text-[var(--color-text-muted)]">
-              {completedCount === ALL_SLUGS.length
+              {bannerCompleted === ALL_SLUGS.length
                 ? "You've completed all available lessons! 🎉"
-                : `${completedCount} of ${ALL_SLUGS.length} lessons completed`}
+                : `${bannerCompleted} of ${ALL_SLUGS.length} lessons completed`}
             </p>
           </div>
         </div>
@@ -45,7 +49,7 @@ export function WelcomeBanner({ basePath }: { basePath: string }) {
           >
             View Dashboard →
           </Link>
-          {completedCount < ALL_SLUGS.length && (
+          {bannerCompleted < ALL_SLUGS.length && (
             <Link
               href={`${basePath}/lessons/${nextSlug}`}
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all active:scale-95"
