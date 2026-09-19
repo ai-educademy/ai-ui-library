@@ -4,7 +4,7 @@ name: Bug Sweeper
 description: Nightly hunt for real defects in the component library (type errors, lint, broken stories, runtime console errors) that ships each fix with a failing-first test.
 on:
   schedule:
-    - cron: "daily"
+    - cron: "weekly on tuesday"
   workflow_dispatch:
 max-daily-ai-credits: 8000
 permissions:

@@ -23,7 +23,7 @@ permissions:
   pull-requests: read
 engine:
   id: gemini
-  model: gemini-3.6-flash
+  model: gemini-3-flash-preview
 timeout-minutes: 30
 strict: true
 network:
