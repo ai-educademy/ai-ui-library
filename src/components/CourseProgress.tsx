@@ -16,7 +16,10 @@ export function CourseProgress({
 
   if (completedCount === 0) return null;
 
-  const percentage = Math.round((completedCount / totalLessons) * 100);
+  const safeTotal = totalLessons > 0 ? totalLessons : 0;
+  const percentage = safeTotal
+    ? Math.min(100, Math.round((completedCount / safeTotal) * 100))
+    : 0;
 
   return (
     <div className="max-w-md mx-auto mt-10 p-5 rounded-2xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">

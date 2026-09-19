@@ -1,4 +1,4 @@
-":root" {
+:root {
   /* Primary palette */
   --color-primary: #6366f1;
   --color-primary-light: #818cf8;
@@ -44,7 +44,7 @@
   --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[data-theme="dark"] {
+.dark {
   --color-primary: #818cf8;
   --color-primary-light: #a5b4fc;
   --color-primary-dark: #6366f1;
@@ -84,4 +84,18 @@
   transition: background-color var(--transition-normal),
     border-color var(--transition-normal),
     color var(--transition-fast);
+}
+
+/* Respect users who ask for less motion. Without this the universal
+   transition above and the reveal keyframes animate for everyone, which is
+   an accessibility failure for vestibular sensitivity. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

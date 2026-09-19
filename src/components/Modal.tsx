@@ -42,14 +42,53 @@ export function Modal({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose, closeOnEscape]);
 
-  // Trap focus and lock body scroll
+  // Lock body scroll, trap Tab focus inside the dialog, and restore focus to
+  // whatever was focused before the modal opened. The previous version only
+  // called dialogRef.current?.focus() once, so keyboard users could Tab
+  // straight out into the page behind the backdrop and never got focus back.
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    dialogRef.current?.focus();
+
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusable = (): HTMLElement[] =>
+      dialog
+        ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+            (el) => el.offsetParent !== null
+          )
+        : [];
+
+    (getFocusable()[0] ?? dialog)?.focus();
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !dialog) return;
+      const items = getFocusable();
+      if (items.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dialog)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
     return () => {
-      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", handleTab);
+      document.body.style.overflow = prevOverflow;
+      previouslyFocused?.focus?.();
     };
   }, [open]);
 
