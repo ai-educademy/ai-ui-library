@@ -1,211 +1,105 @@
 <div align="center">
 
-# 🎨 AI UI Library
+# AI UI Library
 
-**The shared design system for [AI Educademy](https://openaischool.vercel.app)**
+The shared React design system for [AI Educademy](https://aieducademy.org).
 
 [![npm version](https://img.shields.io/npm/v/@ai-educademy/ai-ui-library?color=6366f1&label=npm)](https://www.npmjs.com/package/@ai-educademy/ai-ui-library)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Storybook](https://img.shields.io/badge/Storybook-FF4785?logo=storybook&logoColor=white)](https://ai-educademy.github.io/ai-ui-library/)
 [![CI](https://github.com/ai-educademy/ai-ui-library/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-educademy/ai-ui-library/actions/workflows/ci.yml)
-[![npm downloads](https://img.shields.io/npm/dm/@ai-educademy/ai-ui-library?color=6366f1)](https://www.npmjs.com/package/@ai-educademy/ai-ui-library)
 
-A production-ready React component library built with TypeScript, Tailwind CSS, and Framer Motion. Designed as the single source of truth for UI across all AI Educademy programs.
-
-Published via **OIDC Trusted Publishing** — zero tokens, fully automated CI/CD.
-
-[**📖 Live Storybook →**](https://ai-educademy.github.io/ai-ui-library/) · [**📦 npm →**](https://www.npmjs.com/package/@ai-educademy/ai-ui-library) · [**🚀 AI Educademy →**](https://openaischool.vercel.app)
+[Live Storybook](https://ai-educademy.github.io/ai-ui-library/) | [npm](https://www.npmjs.com/package/@ai-educademy/ai-ui-library) | [AI Educademy](https://aieducademy.org)
 
 </div>
 
----
+## What it is
 
-## ✨ Features
+`@ai-educademy/ai-ui-library` is the shared component library used across AI Educademy products. It provides accessible React primitives, course-aware components, animation helpers, and design tokens so the platform, content pages, and marketing surfaces feel consistent.
 
-- 🧩 **Composable components** — Button, Card, Badge, ThemeToggle, ScrollReveal, and more
-- 🎭 **Dark/light mode** — Built-in ThemeProvider with system preference detection
-- 🎬 **Smooth animations** — Framer Motion integration in every interactive component
-- 🎨 **Design tokens** — CSS custom properties for consistent theming
-- 📦 **Tree-shakeable** — ESM + CJS dual output via tsup
-- 🔒 **TypeScript strict** — Full type safety with exported interfaces
-- ♿ **Accessible** — Keyboard-navigable, ARIA-compliant
-- 📖 **Storybook** — Interactive component playground with docs
+## Features
 
-## 📦 Installation
+- React 19 and strict TypeScript
+- Tailwind compatible CSS custom properties
+- Accessible Button, Card, Badge, Modal, Navigation, Toast, ThemeToggle, and layout primitives
+- Course specific components such as CourseProgress and WelcomeBanner
+- Framer Motion powered transitions and scroll reveal helpers
+- Storybook documentation for development and review
+- Dual ESM and CJS package output through tsup
+- OIDC Trusted Publishing to npm, with no long lived npm token in CI
+
+## Installation
 
 ```bash
 npm install @ai-educademy/ai-ui-library
 ```
 
-**Peer dependencies** (you likely already have these):
+Peer dependencies:
 
 ```bash
 npm install react react-dom next
 ```
 
-## 🚀 Quick Start
+Import the CSS once in your app shell:
 
 ```tsx
-import { Button, Card, Badge, ThemeProvider, ThemeToggle } from "@ai-educademy/ai-ui-library";
 import "@ai-educademy/ai-ui-library/styles.css";
+```
 
-export default function App() {
+## Quick start
+
+```tsx
+import { Badge, Button, Card, ThemeProvider, ThemeToggle } from "@ai-educademy/ai-ui-library";
+
+export default function Example() {
   return (
     <ThemeProvider>
-      <div className="p-8 space-y-6">
+      <Card variant="glass" hover>
         <ThemeToggle />
-
-        <Card variant="glass" hover>
-          <Badge variant="success">New</Badge>
-          <h2>Welcome to AI Educademy</h2>
-          <Button variant="primary" size="lg">
-            Start Learning →
-          </Button>
-        </Card>
-      </div>
+        <Badge variant="success">Pro</Badge>
+        <h2>Welcome to AI Educademy</h2>
+        <Button variant="primary" size="lg">Start learning</Button>
+      </Card>
     </ThemeProvider>
   );
 }
 ```
 
-## 🧩 Components
+## Development
 
-### `<Button />`
-
-Animated button with multiple variants and sizes.
-
-| Prop      | Type                                                    | Default     | Description           |
-| --------- | ------------------------------------------------------- | ----------- | --------------------- |
-| `variant` | `"primary" \| "secondary" \| "ghost" \| "outline" \| "accent"` | `"primary"` | Visual style          |
-| `size`    | `"sm" \| "md" \| "lg"`                                 | `"md"`      | Size                  |
-| `loading` | `boolean`                                               | `false`     | Shows spinner         |
-
-### `<Card />`
-
-Container with glassmorphism and hover effects.
-
-| Prop      | Type                                                | Default     | Description            |
-| --------- | --------------------------------------------------- | ----------- | ---------------------- |
-| `variant` | `"default" \| "elevated" \| "glass" \| "outline"`  | `"default"` | Visual style           |
-| `hover`   | `boolean`                                           | `false`     | Enable hover animation |
-
-### `<Badge />`
-
-Status indicator / label.
-
-| Prop      | Type                                                        | Default     | Description              |
-| --------- | ----------------------------------------------------------- | ----------- | ------------------------ |
-| `variant` | `"default" \| "success" \| "warning" \| "error" \| "info"` | `"default"` | Semantic color           |
-| `size`    | `"sm" \| "md"`                                              | `"sm"`      | Size                     |
-| `color`   | `string`                                                    | —           | Custom hex color override|
-
-### `<ThemeProvider />` & `<ThemeToggle />`
-
-Dark/light mode with system preference detection and localStorage persistence.
-
-### `<ScrollReveal />`
-
-Intersection Observer–powered entrance animations.
-
-### `<FloatingParticles />`
-
-Ambient animated background particles.
-
-### `<CourseProgress />` & `<WelcomeBanner />`
-
-Education-specific components for progress tracking and personalized greetings.
-
-## 🎨 Design Tokens
-
-Import the CSS to get the full token system:
-
-```css
-@import "@ai-educademy/ai-ui-library/styles.css";
+```bash
+npm install
+npm run storybook
+npm run build
+npm run lint
 ```
 
-### Available tokens
+## Project structure
 
-| Token                   | Light          | Dark           |
-| ----------------------- | -------------- | -------------- |
-| `--color-primary`       | `#6366f1`      | `#818cf8`      |
-| `--color-accent`        | `#f59e0b`      | `#fbbf24`      |
-| `--color-bg`            | `#f8fafc`      | `#0f172a`      |
-| `--color-bg-card`       | `#ffffff`      | `#1e293b`      |
-| `--color-text`          | `#0f172a`      | `#f1f5f9`      |
-| `--color-text-muted`    | `#64748b`      | `#94a3b8`      |
-| `--color-border`        | `#e2e8f0`      | `#334155`      |
-
-See [`src/theme/tokens.css`](./src/theme/tokens.css) for the complete set.
-
-## 🏗️ Architecture
-
-```
+```text
 ai-ui-library/
 ├── src/
-│   ├── components/     # React components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Badge.tsx
-│   │   ├── ThemeProvider.tsx
-│   │   ├── ThemeToggle.tsx
-│   │   ├── ScrollReveal.tsx
-│   │   ├── FloatingParticles.tsx
-│   │   ├── CourseProgress.tsx
-│   │   └── WelcomeBanner.tsx
-│   ├── hooks/          # Custom hooks
-│   │   ├── useProgress.ts
-│   │   └── useGuestProfile.ts
+│   ├── components/     # Public React components and stories
+│   ├── hooks/          # Shared hooks
 │   ├── theme/          # Design tokens
-│   │   └── tokens.css
-│   ├── utils/          # Shared utilities
-│   └── index.ts        # Public API (barrel export)
+│   ├── utils/          # Shared helpers
+│   └── index.ts        # Public API
 ├── .storybook/         # Storybook configuration
 ├── tsup.config.ts      # Build configuration
-├── tsconfig.json       # TypeScript configuration
 └── package.json
 ```
 
-## 🛠️ Development
+## Used by
 
-```bash
-# Install dependencies
-npm install
+- [`ai-platform`](https://github.com/ai-educademy/ai-platform), the production app at [aieducademy.org](https://aieducademy.org)
+- AI Educademy course and marketing pages
+- Storybook component documentation on GitHub Pages
 
-# Start Storybook dev server
-npm run storybook
+## Contributing
 
-# Build the library
-npm run build
+Please keep components accessible, typed, and documented with a Storybook story. Run `npm run build` and `npm run lint` before raising a PR.
 
-# Watch mode (rebuild on changes)
-npm run dev
-```
-
-## 🌐 Used By
-
-This library powers every repo in the [AI Educademy](https://github.com/ai-educademy) org:
-
-| Repo | Description |
-|------|-------------|
-| [`ai-platform`](https://github.com/ai-educademy/ai-platform) | Main Next.js app shell |
-| [`ai-seeds`](https://github.com/ai-educademy/ai-seeds) | 🌱 Level 1: Absolute beginners |
-| `ai-sprouts` | 🌿 Level 2: Foundations (coming soon) |
-| `ai-branches` | 🌳 Level 3: Applied AI (coming soon) |
-| `ai-canopy` | 🏕️ Level 4: Advanced (coming soon) |
-| `ai-forest` | 🌲 Level 5: Expert (coming soon) |
-
-## 🤝 Contributing
-
-We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details.
-
-1. Fork the repo
-2. Create your feature branch: `git checkout -b feat/amazing-component`
-3. Add your component in `src/components/`
-4. Add a Storybook story
-5. Run `npm run build` to verify
-6. Submit a PR
-
-## 📄 License
+## Licence
 
 MIT © [AI Educademy](https://github.com/ai-educademy)
