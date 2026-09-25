@@ -24,6 +24,7 @@ permissions:
 engine:
   id: gemini
   model: gemini-3-flash-preview
+  version: "0.39.1"
 timeout-minutes: 30
 strict: true
 network:
@@ -53,6 +54,9 @@ tools:
     mode: gh-proxy
     toolsets: [repos, issues, pull_requests, actions]
 safe-outputs:
+  # No Copilot token in this org; skip the AI pass. Agent PRs still need green CI.
+  threat-detection:
+    engine: false
   push-to-pull-request-branch:
     target: "*"
     if-no-changes: ignore
