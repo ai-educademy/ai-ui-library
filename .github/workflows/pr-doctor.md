@@ -23,9 +23,10 @@ permissions:
   pull-requests: read
 # Free-tier budget: one run may use at most 60 model requests.
 max-turns: 60
+max-turn-cache-misses: 60
 engine:
   id: gemini
-  model: gemini-3.1-flash-lite-preview
+  model: gemini-3.5-flash-lite
   version: "0.39.1"
 timeout-minutes: 30
 strict: true
@@ -37,6 +38,7 @@ tools:
   cache-memory: true
   web-fetch:
   bash:
+    - "safeoutputs *"
     - "git *"
     - "npm ci --legacy-peer-deps"
     - "npm run build"
