@@ -21,9 +21,11 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+# Free-tier budget: one run may use at most 60 model requests.
+max-turns: 60
 engine:
   id: gemini
-  model: gemini-3-flash-preview
+  model: gemini-3.1-flash-lite-preview
   version: "0.39.1"
 timeout-minutes: 30
 strict: true
