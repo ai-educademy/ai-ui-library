@@ -26,6 +26,7 @@ tools:
   edit:
   cache-memory: true
   bash:
+    - "safeoutputs *"
     - "git *"
     - "npm ci --legacy-peer-deps"
     - "npm run build"

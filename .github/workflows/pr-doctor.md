@@ -37,6 +37,7 @@ tools:
   cache-memory: true
   web-fetch:
   bash:
+    - "safeoutputs *"
     - "git *"
     - "npm ci --legacy-peer-deps"
     - "npm run build"
