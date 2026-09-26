@@ -105,3 +105,16 @@ When triggered by `workflow_run`, resolve the PR from the head branch of the com
 - Never touch `package.json` version, `publish.yml`, or npm publishing config. Those ship to consumers and are out of bounds.
 
 If the correct fix would require any of the above, or needs a design judgement you cannot make safely, do not force it. Post one honest comment explaining what is wrong and what a human needs to decide, and stop. An honest "I could not fix this safely" beats a green tick over broken code.
+
+## Mandatory final step
+
+Your run is only recorded if you finish with a safe-output call. Ending with a plain-text summary counts as a failed run.
+
+- If you found something actionable, use the matching safe output (for example `create_issue` or `create_pull_request`).
+- If there is nothing to report, run exactly this shell command, with your one-line summary as the message:
+
+```bash
+safeoutputs noop '{"message":"<one-line summary of what you checked and found>"}'
+```
+
+Do not stop until one of these calls has succeeded.

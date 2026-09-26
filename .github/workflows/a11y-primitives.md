@@ -90,3 +90,16 @@ WCAG 2.2 AA. Prefer real semantic HTML over ARIA every time. A native `<button>`
 - No cosmetic churn dressed up as accessibility. Every change must map to a specific WCAG failure.
 
 When a fix needs a design or product decision (a colour token change that affects brand, or an interaction redesign), open an issue with the specific violation, the WCAG criterion it breaches, and your recommended fix, rather than deciding unilaterally in a PR.
+
+## Mandatory final step
+
+Your run is only recorded if you finish with a safe-output call. Ending with a plain-text summary counts as a failed run.
+
+- If you found something actionable, use the matching safe output (for example `create_issue` or `create_pull_request`).
+- If there is nothing to report, run exactly this shell command, with your one-line summary as the message:
+
+```bash
+safeoutputs noop '{"message":"<one-line summary of what you checked and found>"}'
+```
+
+Do not stop until one of these calls has succeeded.

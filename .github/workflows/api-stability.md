@@ -90,3 +90,16 @@ The contract is whatever `src/index.ts` re-exports: the components, hooks and ex
 - Never claim the bundle shrank or the API is unchanged unless you actually built and measured it.
 
 If everything is stable and documented, say so and stop. A quiet, honest "the public API is intact this week" is exactly the outcome consumers are paying for.
+
+## Mandatory final step
+
+Your run is only recorded if you finish with a safe-output call. Ending with a plain-text summary counts as a failed run.
+
+- If you found something actionable, use the matching safe output (for example `create_issue` or `create_pull_request`).
+- If there is nothing to report, run exactly this shell command, with your one-line summary as the message:
+
+```bash
+safeoutputs noop '{"message":"<one-line summary of what you checked and found>"}'
+```
+
+Do not stop until one of these calls has succeeded.
