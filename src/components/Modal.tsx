@@ -112,7 +112,8 @@ export function Modal({
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={title}
+            aria-labelledby={title ? "modal-title" : undefined}
+            aria-label={!title ? "Modal" : undefined}
             tabIndex={-1}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -123,7 +124,7 @@ export function Modal({
             {/* Header */}
             {title && (
               <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-                <h2 className="text-lg font-semibold text-[var(--color-text)]">
+                <h2 id="modal-title" className="text-lg font-semibold text-[var(--color-text)]">
                   {title}
                 </h2>
                 <button
